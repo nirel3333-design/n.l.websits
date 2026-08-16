@@ -1,0 +1,7 @@
+.env
+.venv/
+state/
+videos/*
+!videos/.gitkeep
+__pycache__/
+*.pyc
