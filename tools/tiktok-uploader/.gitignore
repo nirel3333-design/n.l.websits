@@ -3,5 +3,11 @@
 state/
 videos/*
 !videos/.gitkeep
+projects/*
+!projects/.gitkeep
+assets/music/*
+!assets/music/.gitkeep
+assets/fonts/*
+!assets/fonts/.gitkeep
 __pycache__/
 *.pyc

@@ -36,6 +36,13 @@ def _bool(name: str, default: bool) -> bool:
     return raw.strip().lower() in {"1", "true", "yes", "on"}
 
 
+def _float(name: str, default: float) -> float:
+    try:
+        return float(os.environ.get(name, "").strip())
+    except (TypeError, ValueError):
+        return default
+
+
 def _int(name: str, default: int) -> int:
     try:
         return int(os.environ.get(name, "").strip())
@@ -54,6 +61,19 @@ class Config:
 
     videos_dir: pathlib.Path = ROOT / "videos"
     state_dir: pathlib.Path = ROOT / "state"
+    projects_dir: pathlib.Path = ROOT / "projects"
+    music_dir: pathlib.Path = ROOT / "assets" / "music"
+
+    # Branding burned into every video
+    business_name: str = "N.L Studio"
+    phone: str = ""
+    logo_path: str = ""
+    font_path: str = ""
+
+    # Video shape
+    seconds_per_slide: float = 2.8
+    max_video_seconds: float = 45.0
+    outro_seconds: float = 2.4
 
     # Posting behaviour
     privacy_level: str = "PUBLIC_TO_EVERYONE"
@@ -105,12 +125,20 @@ def load_config() -> Config:
         min_gap_minutes=_int("MIN_GAP_MINUTES", 30),
         max_attempts=_int("MAX_ATTEMPTS", 3),
         autopost=_bool("AUTOPOST", True),
+        business_name=os.environ.get("BUSINESS_NAME", "N.L Studio").strip(),
+        phone=os.environ.get("PHONE", "").strip(),
+        logo_path=os.environ.get("LOGO_PATH", "").strip(),
+        font_path=os.environ.get("FONT_PATH", "").strip(),
+        seconds_per_slide=_float("SECONDS_PER_SLIDE", 2.8),
+        max_video_seconds=_float("MAX_VIDEO_SECONDS", 45.0),
+        outro_seconds=_float("OUTRO_SECONDS", 2.4),
     )
-    if os.environ.get("VIDEOS_DIR"):
-        cfg.videos_dir = pathlib.Path(os.environ["VIDEOS_DIR"]).expanduser().resolve()
-    if os.environ.get("STATE_DIR"):
-        cfg.state_dir = pathlib.Path(os.environ["STATE_DIR"]).expanduser().resolve()
+    for var, attr in (("VIDEOS_DIR", "videos_dir"), ("STATE_DIR", "state_dir"),
+                      ("PROJECTS_DIR", "projects_dir"), ("MUSIC_DIR", "music_dir")):
+        if os.environ.get(var):
+            setattr(cfg, attr,
+                    pathlib.Path(os.environ[var]).expanduser().resolve())
 
-    cfg.videos_dir.mkdir(parents=True, exist_ok=True)
-    cfg.state_dir.mkdir(parents=True, exist_ok=True)
+    for path in (cfg.videos_dir, cfg.state_dir, cfg.projects_dir, cfg.music_dir):
+        path.mkdir(parents=True, exist_ok=True)
     return cfg

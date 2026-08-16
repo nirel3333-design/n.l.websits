@@ -13,6 +13,7 @@ from typing import Any
 
 from flask import Flask, jsonify, redirect, render_template, request
 
+from . import projects as projects_mod
 from .api import TikTokClient
 from .auth import Auth, AuthError
 from .config import Config
@@ -35,6 +36,7 @@ def create_app(cfg: Config) -> tuple[Flask, Scheduler]:
     client = TikTokClient(auth)
     scheduler = Scheduler(cfg, store, client)
     scan_lock = threading.Lock()
+    build_lock = threading.Lock()
 
     def state_payload() -> dict[str, Any]:
         videos = []
@@ -55,11 +57,16 @@ def create_app(cfg: Config) -> tuple[Flask, Scheduler]:
             auth_state = auth.status()
         except Exception as exc:  # never let the dashboard 500 on auth trouble
             auth_state = {"connected": False, "error": str(exc)}
+        try:
+            project_list = projects_mod.list_projects(cfg)
+        except Exception:
+            project_list = []
         return {
             "auth": auth_state,
             "configured": cfg.configured,
             "counts": store.counts(),
             "videos": videos,
+            "projects": project_list,
             "events": [
                 {"ts": humanize(e["ts"]), "level": e["level"], "message": e["message"]}
                 for e in store.recent_events(40)
@@ -132,6 +139,32 @@ def create_app(cfg: Config) -> tuple[Flask, Scheduler]:
         finally:
             scan_lock.release()
         return jsonify({"ok": True, **result})
+
+    @app.post("/api/build")
+    def api_build():
+        """Render every unbuilt project folder into a captioned video."""
+        if not build_lock.acquire(blocking=False):
+            return jsonify({"ok": False, "error": "בנייה כבר רצה"}), 409
+
+        def worker():
+            try:
+                result = projects_mod.build_all(
+                    cfg, log=lambda m: store.log("info", m)
+                )
+                store.log(
+                    "info",
+                    f"בנייה הסתיימה: {result['built']} נבנו, "
+                    f"{result['skipped']} דולגו, {result['failed']} נכשלו",
+                )
+                if result["built"]:
+                    scan(cfg.videos_dir, store, settle=False)
+            except Exception as exc:
+                store.log("error", f"הבנייה נכשלה: {exc}")
+            finally:
+                build_lock.release()
+
+        threading.Thread(target=worker, daemon=True).start()
+        return jsonify({"ok": True, "started": True})
 
     @app.post("/api/post/<int:video_id>")
     def api_post(video_id: int):

@@ -79,6 +79,7 @@ code{background:var(--card-hi);padding:2px 6px;border-radius:5px;font-size:.85em
       <label class="switch">
         <input type="checkbox" id="autopost"> <span>פרסום אוטומטי</span>
       </label>
+      <button class="btn" id="build">בנה סרטונים</button>
       <button class="btn" id="scan">סרוק תיקייה</button>
       <button class="btn primary" id="connect">חבר חשבון</button>
       <button class="btn" id="logout" hidden>נתק</button>
@@ -101,6 +102,10 @@ code{background:var(--card-hi);padding:2px 6px;border-radius:5px;font-size:.85em
     </div>
 
     <div>
+      <div class="card" style="margin-bottom:16px">
+        <h2>פרויקטים (תמונות → סרטון)</h2>
+        <div id="projects" class="muted"></div>
+      </div>
       <div class="card" style="margin-bottom:16px">
         <h2>הגדרות</h2>
         <div id="settings" class="muted"></div>
@@ -181,6 +186,15 @@ function render(state) {
   $("rows").innerHTML = rows.join("") ||
     `<tr><td colspan="5" class="muted">אין סרטונים. שימו קבצים בתיקייה ולחצו "סרוק תיקייה".</td></tr>`;
 
+  // projects
+  const projs = state.projects || [];
+  $("projects").innerHTML = projs.length
+    ? projs.map((p) => `<div style="display:flex;justify-content:space-between;gap:10px;padding:5px 0">
+        <span>${esc(p.name)} <span class="muted">(${p.images} תמונות)</span></span>
+        <span class="tag ${p.built ? "s-posted" : "s-pending"}">${p.built ? "נבנה" : "ממתין"}</span>
+      </div>`).join("")
+    : `אין פרויקטים. צרו תיקייה תחת <code dir="ltr">projects/</code> עם תמונות.`;
+
   // settings
   const s = state.settings || {};
   $("settings").innerHTML = `
@@ -215,6 +229,16 @@ $("scan").onclick = async (e) => {
   e.target.disabled = false; e.target.textContent = "סרוק תיקייה"; busy = false;
   if (r.ok) alert(`נוספו ${r.added} סרטונים (${r.skipped} כבר היו בתור)`);
   else alert(r.error || "הסריקה נכשלה");
+  refresh();
+};
+
+$("build").onclick = async (e) => {
+  if (busy) return;
+  busy = true; e.target.disabled = true; e.target.textContent = "בונה…";
+  const r = await api("/api/build");
+  if (!r.ok) alert(r.error || "הבנייה נכשלה");
+  else alert("הבנייה התחילה — עקבו אחרי היומן. זה לוקח כדקה לסרטון.");
+  e.target.disabled = false; e.target.textContent = "בנה סרטונים"; busy = false;
   refresh();
 };
 
