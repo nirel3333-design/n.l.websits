@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>N.L Studio — מעלה סרטונים לטיקטוק</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%230A0B0F'/%3E%3Ctext x='50%25' y='56%25' font-size='34' text-anchor='middle' dominant-baseline='middle'%3E%F0%9F%8E%AC%3C/text%3E%3C/svg%3E">
+<style>
+:root{
+  --bg:#0A0B0F; --card:#141821; --card-hi:#1A1F2B;
+  --line:rgba(245,247,250,.10); --line-hi:rgba(245,247,250,.18);
+  --text:#F5F7FA; --muted:#A8B1C0; --cyan:#00E5FF; --gold:#F0B429;
+  --ok:#22C55E; --bad:#F05252; --radius:14px;
+}
+*,*::before,*::after{box-sizing:border-box}
+body{
+  margin:0;background:var(--bg);color:var(--text);
+  font-family:system-ui,-apple-system,"Segoe UI",Arial,sans-serif;
+  font-size:15px;line-height:1.6;
+}
+a{color:var(--cyan)}
+h1{font-size:1.3rem;margin:0}
+h2{font-size:1rem;margin:0 0 12px;color:var(--muted);font-weight:600}
+.wrap{max-width:1080px;margin-inline:auto;padding:20px}
+header{
+  display:flex;flex-wrap:wrap;gap:12px;align-items:center;justify-content:space-between;
+  padding-bottom:16px;border-bottom:1px solid var(--line);margin-bottom:20px;
+}
+.dot{width:9px;height:9px;border-radius:50%;display:inline-block;margin-inline-end:6px}
+.dot.on{background:var(--ok);box-shadow:0 0 10px var(--ok)}
+.dot.off{background:var(--bad)}
+.btn{
+  font:inherit;font-weight:600;cursor:pointer;border-radius:999px;
+  padding:8px 18px;border:1px solid var(--line-hi);
+  background:rgba(245,247,250,.05);color:var(--text);
+}
+.btn:hover{border-color:var(--cyan);background:rgba(0,229,255,.08)}
+.btn.primary{background:linear-gradient(135deg,#00E5FF,#00B8D4);color:#03151B;border-color:transparent}
+.btn.small{padding:5px 12px;font-size:.85rem}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.grid{display:grid;gap:16px;grid-template-columns:1fr}
+@media(min-width:900px){.grid{grid-template-columns:2fr 1fr}}
+.card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:18px}
+table{width:100%;border-collapse:collapse;font-size:.92rem}
+th,td{text-align:right;padding:9px 8px;border-bottom:1px solid var(--line)}
+th{color:var(--muted);font-weight:600;font-size:.82rem}
+tr:last-child td{border-bottom:none}
+.tag{font-size:.75rem;font-weight:700;padding:3px 10px;border-radius:999px;white-space:nowrap}
+.s-pending{background:rgba(240,180,41,.15);color:var(--gold)}
+.s-uploading,.s-processing{background:rgba(0,229,255,.15);color:var(--cyan)}
+.s-posted{background:rgba(34,197,94,.15);color:var(--ok)}
+.s-failed{background:rgba(240,82,82,.15);color:var(--bad)}
+.s-skipped{background:rgba(168,177,192,.15);color:var(--muted)}
+.counts{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:14px}
+.pill{background:var(--card-hi);border:1px solid var(--line);border-radius:999px;padding:5px 14px;font-size:.85rem}
+.muted{color:var(--muted)}
+.err{color:var(--bad);font-size:.82rem;margin-top:3px;word-break:break-word}
+.log{max-height:340px;overflow:auto;font-size:.83rem}
+.log div{padding:5px 0;border-bottom:1px solid var(--line)}
+.log .warn{color:var(--gold)} .log .error{color:var(--bad)}
+.banner{
+  background:rgba(240,180,41,.10);border:1px solid rgba(240,180,41,.35);
+  border-radius:var(--radius);padding:12px 16px;margin-bottom:18px;font-size:.9rem;
+}
+code{background:var(--card-hi);padding:2px 6px;border-radius:5px;font-size:.85em}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.switch{display:flex;align-items:center;gap:8px;cursor:pointer;user-select:none}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <div>
+      <h1>מעלה סרטונים לטיקטוק</h1>
+      <div class="muted" id="acct">טוען…</div>
+    </div>
+    <div class="row">
+      <label class="switch">
+        <input type="checkbox" id="autopost"> <span>פרסום אוטומטי</span>
+      </label>
+      <button class="btn" id="scan">סרוק תיקייה</button>
+      <button class="btn primary" id="connect">חבר חשבון</button>
+      <button class="btn" id="logout" hidden>נתק</button>
+    </div>
+  </header>
+
+  <div id="banner"></div>
+
+  <div class="counts" id="counts"></div>
+
+  <div class="grid">
+    <div class="card">
+      <h2>תור הסרטונים</h2>
+      <table>
+        <thead>
+          <tr><th>קובץ</th><th>כיתוב</th><th>מצב</th><th>מתוזמן</th><th></th></tr>
+        </thead>
+        <tbody id="rows"><tr><td colspan="5" class="muted">טוען…</td></tr></tbody>
+      </table>
+    </div>
+
+    <div>
+      <div class="card" style="margin-bottom:16px">
+        <h2>הגדרות</h2>
+        <div id="settings" class="muted"></div>
+      </div>
+      <div class="card">
+        <h2>יומן</h2>
+        <div class="log" id="log"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+const $ = (id) => document.getElementById(id);
+const STATUS_HE = {
+  pending: "ממתין", uploading: "מעלה", processing: "מעבד",
+  posted: "פורסם", failed: "נכשל", skipped: "דולג",
+};
+let busy = false;
+
+async function api(path, method = "POST", body) {
+  const res = await fetch(path, {
+    method,
+    headers: body ? { "Content-Type": "application/json" } : undefined,
+    body: body ? JSON.stringify(body) : undefined,
+  });
+  return res.json().catch(() => ({}));
+}
+
+function esc(s) {
+  return String(s ?? "").replace(/[&<>"']/g, (c) => (
+    { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]
+  ));
+}
+
+function render(state) {
+  // account
+  const a = state.auth || {};
+  $("acct").innerHTML = a.connected
+    ? `<span class="dot on"></span>מחובר · פג תוקף בעוד ${Math.round((a.expires_in||0)/60)} דק'`
+    : `<span class="dot off"></span>לא מחובר`;
+  $("connect").hidden = !!a.connected;
+  $("logout").hidden = !a.connected;
+  $("autopost").checked = !!(state.settings && state.settings.autopost);
+
+  // banners
+  let banner = "";
+  if (!state.configured) {
+    banner = `יש למלא <code>TIKTOK_CLIENT_KEY</code> ו-<code>TIKTOK_CLIENT_SECRET</code> בקובץ <code>.env</code> ואז להפעיל מחדש.`;
+  } else if (a.connected && a.can_direct_post === false) {
+    banner = `ההרשאה <code>video.publish</code> לא ניתנה, ולכן פרסום ישיר ייכשל. צריך לאשר אותה במסך ההתחברות ולוודא שהאפליקציה עברה audit ב-TikTok.`;
+  } else if (state.last_error) {
+    banner = `שגיאה אחרונה: ${esc(state.last_error)}`;
+  }
+  $("banner").innerHTML = banner ? `<div class="banner">${banner}</div>` : "";
+
+  // counts
+  $("counts").innerHTML = Object.entries(state.counts || {})
+    .filter(([, n]) => n > 0)
+    .map(([k, n]) => `<span class="pill">${STATUS_HE[k] || k}: <b>${n}</b></span>`)
+    .join("") || `<span class="pill muted">התור ריק</span>`;
+
+  // queue
+  const rows = (state.videos || []).map((v) => {
+    const canPost = v.status === "pending" || v.status === "failed";
+    return `<tr>
+      <td>${esc(v.name)}<div class="muted" style="font-size:.8rem">${v.size_mb} MB</div></td>
+      <td>${esc(v.title)}${v.error ? `<div class="err">${esc(v.error)}</div>` : ""}</td>
+      <td><span class="tag s-${v.status}">${STATUS_HE[v.status] || v.status}</span></td>
+      <td class="muted">${esc(v.posted_at || v.scheduled_for || "—")}</td>
+      <td><div class="row">
+        ${canPost ? `<button class="btn small" data-act="post" data-id="${v.id}">פרסם עכשיו</button>` : ""}
+        ${v.status === "failed" ? `<button class="btn small" data-act="retry" data-id="${v.id}">נסה שוב</button>` : ""}
+        <button class="btn small" data-act="delete" data-id="${v.id}">הסר</button>
+      </div></td>
+    </tr>`;
+  });
+  $("rows").innerHTML = rows.join("") ||
+    `<tr><td colspan="5" class="muted">אין סרטונים. שימו קבצים בתיקייה ולחצו "סרוק תיקייה".</td></tr>`;
+
+  // settings
+  const s = state.settings || {};
+  $("settings").innerHTML = `
+    תיקייה: <code dir="ltr">${esc(s.videos_dir)}</code><br>
+    שעות פרסום: <b>${(s.schedule_times || []).join(", ")}</b><br>
+    מרווח מינימלי: <b>${s.min_gap_minutes} דק'</b><br>
+    פרטיות: <b>${esc(s.privacy_level)}</b><br>
+    ניסיונות מרביים: <b>${s.max_attempts}</b>`;
+
+  // log
+  $("log").innerHTML = (state.events || [])
+    .map((e) => `<div class="${esc(e.level)}"><span class="muted">${esc(e.ts)}</span> ${esc(e.message)}</div>`)
+    .join("") || `<div class="muted">אין רשומות עדיין</div>`;
+}
+
+async function refresh() {
+  try {
+    render(await (await fetch("/api/state")).json());
+  } catch (_) { /* dashboard stays on the last good state */ }
+}
+
+$("connect").onclick = () => (location.href = "/auth/login");
+$("logout").onclick = async () => { await api("/api/logout"); refresh(); };
+$("autopost").onchange = async (e) => {
+  await api("/api/autopost", "POST", { enabled: e.target.checked });
+  refresh();
+};
+$("scan").onclick = async (e) => {
+  if (busy) return;
+  busy = true; e.target.disabled = true; e.target.textContent = "סורק…";
+  const r = await api("/api/scan");
+  e.target.disabled = false; e.target.textContent = "סרוק תיקייה"; busy = false;
+  if (r.ok) alert(`נוספו ${r.added} סרטונים (${r.skipped} כבר היו בתור)`);
+  else alert(r.error || "הסריקה נכשלה");
+  refresh();
+};
+
+$("rows").onclick = async (e) => {
+  const btn = e.target.closest("button[data-act]");
+  if (!btn) return;
+  const { act, id } = btn.dataset;
+  if (act === "delete" && !confirm("להסיר מהתור?")) return;
+  btn.disabled = true;
+  await api(`/api/${act}/${id}`);
+  refresh();
+};
+
+refresh();
+setInterval(refresh, 4000);
+</script>
+</body>
+</html>
