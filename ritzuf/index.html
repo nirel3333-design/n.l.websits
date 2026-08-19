@@ -1,0 +1,1260 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>מחשבון פריסת ריצוף — N.L Studio</title>
+<meta name="description" content="מחשבון פריסת ריצוף: כמות אריחים, חבילות, רשימת חיתוכים והדמיה מלמעלה. עובד בנייד, בעברית.">
+<meta name="theme-color" content="#07090d">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%2307090d'/%3E%3Cg fill='none' stroke='%2300E5FF' stroke-width='4'%3E%3Crect x='10' y='10' width='19' height='19'/%3E%3Crect x='35' y='10' width='19' height='19'/%3E%3Crect x='10' y='35' width='19' height='19'/%3E%3Crect x='35' y='35' width='19' height='19'/%3E%3C/g%3E%3C/svg%3E">
+<style>
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;padding:0}
+:root{
+  --bg:#07090d; --panel:#121722; --panel2:#1b2231; --line:#33405a;
+  --text:#ffffff; --muted:#b7c6da; --acc:#00E5FF; --acc-d:#00323b;
+  --warn:#ffb020; --bad:#ff5252; --ok:#3ddc84; --r:14px;
+  --safe: env(safe-area-inset-bottom, 0px);
+}
+body{
+  background:var(--bg); color:var(--text);
+  font-family:"Assistant","Heebo",system-ui,-apple-system,"Segoe UI",Arial,sans-serif;
+  font-size:17px; line-height:1.5; padding:0 0 calc(96px + var(--safe));
+  -webkit-text-size-adjust:100%;
+}
+.wrap{max-width:820px;margin:0 auto;padding:0 12px}
+header.top{
+  position:sticky;top:0;z-index:40;background:rgba(7,9,13,.94);
+  backdrop-filter:blur(8px);border-bottom:2px solid var(--line);padding:10px 0
+}
+header.top .wrap{display:flex;align-items:center;gap:10px}
+.logo{width:38px;height:38px;border-radius:10px;background:var(--acc-d);border:2px solid var(--acc);
+  display:grid;place-items:center;font-weight:900;color:var(--acc);font-size:14px;flex:none}
+h1{font-size:19px;margin:0;font-weight:800;letter-spacing:-.2px}
+.sub{font-size:12.5px;color:var(--muted);margin:0}
+h2{font-size:18px;margin:0 0 10px;font-weight:800}
+.card{background:var(--panel);border:2px solid var(--line);border-radius:var(--r);padding:14px;margin:12px 0}
+.card.acc{border-color:#2f4a5c}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}
+label{display:block;font-size:14px;color:var(--muted);margin:0 0 5px;font-weight:600}
+input,select{
+  width:100%;min-height:54px;background:var(--panel2);color:var(--text);
+  border:2px solid var(--line);border-radius:12px;padding:10px 12px;font-size:19px;
+  font-family:inherit;font-weight:700;text-align:center
+}
+input:focus,select:focus{outline:none;border-color:var(--acc)}
+input[type=file]{font-size:14px;font-weight:600;min-height:48px;padding:11px;text-align:right}
+select{text-align:right;text-align-last:right}
+.btn{
+  display:flex;align-items:center;justify-content:center;gap:8px;width:100%;min-height:56px;
+  background:var(--panel2);color:var(--text);border:2px solid var(--line);border-radius:12px;
+  font-size:17px;font-weight:800;font-family:inherit;cursor:pointer;padding:10px 12px
+}
+.btn:active{transform:scale(.985)}
+.btn.primary{background:var(--acc);color:#062126;border-color:var(--acc)}
+.btn.ghost{background:transparent}
+.btn.sm{min-height:46px;font-size:15px}
+.btn.danger{border-color:#5b2530;color:#ff9aa2}
+.seg{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.seg button{
+  min-height:56px;border-radius:12px;border:2px solid var(--line);background:var(--panel2);
+  color:var(--text);font-weight:800;font-size:16px;font-family:inherit;cursor:pointer;padding:8px
+}
+.seg button small{display:block;font-size:12px;color:var(--muted);font-weight:600;margin-top:2px}
+.seg button[aria-pressed="true"]{background:var(--acc-d);border-color:var(--acc);color:var(--acc)}
+.seg button[aria-pressed="true"] small{color:#7fd8e6}
+.chips{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.chip{background:var(--panel2);border:2px solid var(--line);border-radius:12px;padding:10px}
+.chip .k{font-size:13px;color:var(--muted);font-weight:700}
+.chip .v{font-size:26px;font-weight:900;letter-spacing:-.5px;line-height:1.15}
+.chip.big{grid-column:1/-1;border-color:var(--acc);background:linear-gradient(180deg,#0d2a30,#101722)}
+.chip.big .v{color:var(--acc);font-size:34px}
+.chip .u{font-size:14px;color:var(--muted);font-weight:700}
+.note{font-size:13.5px;color:var(--muted);margin:8px 0 0}
+.msg{border-radius:12px;padding:11px 12px;margin:8px 0;font-size:15px;font-weight:700;border:2px solid}
+.msg.warn{background:#2a1e05;border-color:#7a5a12;color:#ffd489}
+.msg.ok{background:#0b2419;border-color:#1d6b45;color:#9df0c4}
+.msg.bad{background:#2b0f12;border-color:#7a2630;color:#ffb3b8}
+.msg b{color:#fff}
+.dedrow{display:grid;grid-template-columns:1.15fr 1fr 1fr 1fr 1fr 52px;gap:6px;align-items:end;margin-bottom:8px}
+.dedrow input,.dedrow select{min-height:48px;font-size:16px;padding:6px 4px}
+.dedrow .x{min-height:48px;border-radius:10px;border:2px solid #5b2530;background:#201215;color:#ff9aa2;font-size:20px;font-weight:900;cursor:pointer}
+.canvasBox{position:relative;background:#0b0f16;border:2px solid var(--line);border-radius:var(--r);overflow:hidden;touch-action:none}
+canvas{display:block;width:100%;height:64vh;min-height:330px;max-height:560px}
+.zoom{position:absolute;inset-inline-start:8px;bottom:8px;display:flex;gap:6px}
+.zoom button{width:48px;height:48px;border-radius:12px;border:2px solid var(--line);background:rgba(12,16,24,.92);
+  color:#fff;font-size:22px;font-weight:900;cursor:pointer;font-family:inherit}
+.legend{display:flex;flex-wrap:wrap;gap:10px;font-size:13px;color:var(--muted);margin-top:8px}
+.legend i{width:14px;height:14px;border-radius:3px;display:inline-block;vertical-align:-2px;margin-inline-end:5px}
+.tblwrap{overflow-x:auto;-webkit-overflow-scrolling:touch;border:2px solid var(--line);border-radius:12px}
+table{width:100%;border-collapse:collapse;font-size:15px}
+th,td{padding:10px 7px;text-align:right;border-bottom:1px solid var(--line);white-space:nowrap}
+td.txt,th.txt{white-space:normal;font-size:14px;line-height:1.35}
+th{background:var(--panel2);font-size:13.5px;color:var(--muted);position:sticky;top:0}
+td.num{font-weight:900;font-size:17px}
+tr:last-child td{border-bottom:none}
+.bar{position:fixed;inset-inline:0;bottom:0;z-index:50;background:rgba(7,9,13,.96);
+  border-top:2px solid var(--line);padding:10px 12px calc(10px + var(--safe))}
+.bar .wrap{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;padding:0}
+.foot{text-align:center;color:var(--muted);font-size:13px;padding:6px 0 4px}
+.foot a{color:var(--acc)}
+details summary{cursor:pointer;font-weight:800;font-size:16px;padding:6px 0;list-style:none}
+details summary::-webkit-details-marker{display:none}
+details summary::before{content:"▾ ";color:var(--acc)}
+details[open] summary::before{content:"▴ "}
+.hide{display:none !important}
+#printArea{display:none}
+@media (max-width:359px){
+  .grid3{grid-template-columns:1fr 1fr}
+  .dedrow{grid-template-columns:1fr 1fr 1fr;gap:6px}
+  .dedrow .x{grid-column:3/4}
+}
+@media print{
+  body{background:#fff;color:#000;padding:0}
+  body > *:not(#printArea){display:none !important}
+  #printArea{display:block !important;padding:10px}
+  #printArea img{width:100%;border:1px solid #999}
+  #printArea table{width:100%;border-collapse:collapse;font-size:12px}
+  #printArea th,#printArea td{border:1px solid #999;padding:4px;text-align:right;color:#000}
+  #printArea h1{font-size:20px} #printArea h2{font-size:15px;margin-top:12px}
+  .pgrid{display:flex;flex-wrap:wrap;gap:8px}
+  .pgrid div{border:1px solid #999;padding:6px 10px;font-size:13px}
+}
+</style>
+</head>
+<body>
+<header class="top">
+  <div class="wrap">
+    <div class="logo">NL</div>
+    <div>
+      <h1>מחשבון פריסת ריצוף</h1>
+      <p class="sub">כמויות · חיתוכים · הדמיה מלמעלה</p>
+    </div>
+  </div>
+</header>
+
+<div class="wrap">
+
+  <!-- ====== INPUT ====== -->
+  <section class="card">
+    <h2>1. מידות החדר (ס״מ)</h2>
+    <div class="grid2">
+      <div><label for="roomW">רוחב החדר</label><input id="roomW" type="number" inputmode="decimal" value="400" min="10" step="1"></div>
+      <div><label for="roomH">אורך החדר</label><input id="roomH" type="number" inputmode="decimal" value="300" min="10" step="1"></div>
+    </div>
+    <p class="note" id="areaNote"></p>
+
+    <details style="margin-top:6px">
+      <summary>ניכויים — עמוד / ארון / נישה</summary>
+      <p class="note">המיקום נמדד מהפינה <b>שמאל־עליון</b> של התוכנית (כמו שמסומן בהדמיה).</p>
+      <div id="dedList"></div>
+      <button class="btn sm ghost" id="addDed" type="button">+ הוסף ניכוי</button>
+    </details>
+  </section>
+
+  <section class="card">
+    <h2>2. האריח</h2>
+    <div class="grid3">
+      <div><label for="tileW">רוחב אריח</label><input id="tileW" type="number" inputmode="decimal" value="60" min="1" step="0.1"></div>
+      <div><label for="tileH">אורך אריח</label><input id="tileH" type="number" inputmode="decimal" value="60" min="1" step="0.1"></div>
+      <div><label for="grout">פוגה (מ״מ)</label><input id="grout" type="number" inputmode="decimal" value="3" min="0" step="0.5"></div>
+    </div>
+    <div class="grid2" style="margin-top:8px">
+      <button class="btn sm ghost" id="swapTile" type="button">⇄ הפוך אריח</button>
+      <select id="tilePreset" aria-label="גדלים נפוצים">
+        <option value="">גדלים נפוצים…</option>
+        <option value="60x60">60×60</option>
+        <option value="120x60">120×60</option>
+        <option value="80x80">80×80</option>
+        <option value="100x100">100×100</option>
+        <option value="90x90">90×90</option>
+        <option value="45x45">45×45</option>
+        <option value="33x33">33×33</option>
+        <option value="20x20">20×20</option>
+        <option value="60x30">60×30</option>
+        <option value="120x20">120×20 (פרקט)</option>
+        <option value="20x10">20×10 (אבן/חיפוי)</option>
+      </select>
+    </div>
+    <div style="margin-top:10px">
+      <label>תמונת אריח להדמיה (לא חובה)</label>
+      <input id="tileImg" type="file" accept="image/*" class="hide">
+      <label class="btn sm ghost" for="tileImg" style="margin:0">📷 בחר תמונת אריח</label>
+      <div style="display:flex;align-items:center;gap:10px;margin-top:8px">
+        <img id="imgPrev" class="hide" alt="" style="width:46px;height:46px;object-fit:cover;border-radius:9px;border:2px solid var(--line);flex:none">
+        <span id="imgName" style="font-size:13.5px;color:var(--muted);flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">לא נבחרה תמונה — האריחים יוצגו בצבע אחיד</span>
+        <button class="btn sm danger hide" id="rmImg" type="button" style="width:auto;padding:0 14px">הסר</button>
+      </div>
+    </div>
+  </section>
+
+  <section class="card">
+    <h2>3. דגם פריסה</h2>
+    <div class="seg" id="patternSeg">
+      <button type="button" data-v="grid" aria-pressed="true">ישר (רשת)<small>אריח מול אריח</small></button>
+      <button type="button" data-v="brick">חצי אריח<small>בריק 1/2</small></button>
+      <button type="button" data-v="third">שליש אריח<small>בריק 1/3</small></button>
+      <button type="button" data-v="diag">אלכסון 45°<small>מעוין</small></button>
+    </div>
+
+    <h2 style="margin-top:14px">4. נקודת התחלה</h2>
+    <div class="seg" id="startSeg">
+      <button type="button" data-v="center" aria-pressed="true">ממרכז החדר<small>חיתוכים שווים בשני הצדדים</small></button>
+      <button type="button" data-v="corner">מפינה<small>אריח שלם בפינה</small></button>
+    </div>
+    <div class="grid2" style="margin-top:10px">
+      <div><label for="shiftX">הזזה אופקית (ס״מ)</label><input id="shiftX" type="number" inputmode="decimal" value="0" step="0.5"></div>
+      <div><label for="shiftY">הזזה אנכית (ס״מ)</label><input id="shiftY" type="number" inputmode="decimal" value="0" step="0.5"></div>
+    </div>
+    <label style="display:flex;align-items:center;gap:10px;margin-top:12px;font-size:16px;color:var(--text);font-weight:700">
+      <input id="autoBalance" type="checkbox" checked style="width:26px;height:26px;min-height:26px;accent-color:var(--acc)">
+      איזון אוטומטי — למנוע חיתוך צר מ־⅓ אריח
+    </label>
+  </section>
+
+  <section class="card">
+    <h2>5. רכש</h2>
+    <div class="grid2">
+      <div><label for="perPack">אריחים בחבילה</label><input id="perPack" type="number" inputmode="numeric" value="4" min="1" step="1"></div>
+      <div><label for="waste">פחת (%)</label><input id="waste" type="number" inputmode="decimal" value="10" min="0" step="1"></div>
+    </div>
+  </section>
+
+  <!-- ====== OUTPUT ====== -->
+  <section class="card acc" id="resultCard">
+    <h2>תוצאות</h2>
+    <div id="alerts"></div>
+    <div class="chips">
+      <div class="chip big"><div class="k">סה״כ לקנות (כולל פחת)</div><div class="v"><span id="oTotal">–</span> <span class="u">אריחים</span></div></div>
+      <div class="chip"><div class="k">אריחים שלמים</div><div class="v" id="oFull">–</div></div>
+      <div class="chip"><div class="k">אריחים חתוכים</div><div class="v" id="oCut">–</div></div>
+      <div class="chip"><div class="k">נדרש בפועל</div><div class="v" id="oNeed">–</div></div>
+      <div class="chip"><div class="k">חבילות לקנות</div><div class="v" id="oPacks">–</div></div>
+      <div class="chip"><div class="k">שטח נטו לריצוף</div><div class="v" id="oArea">–</div></div>
+      <div class="chip"><div class="k">מ״ר בחבילה</div><div class="v" id="oPackArea">–</div></div>
+    </div>
+    <p class="note">כל חיתוך נספר כאריח נפרד (חישוב זהיר). אם מנצלים את שאריות החיתוך בקצה השני — הכמות בפועל תהיה נמוכה יותר.</p>
+  </section>
+
+  <section class="card">
+    <h2>הדמיה — מבט מלמעלה</h2>
+    <div class="canvasBox">
+      <canvas id="plan"></canvas>
+      <div class="zoom">
+        <button type="button" id="zIn" aria-label="הגדל">+</button>
+        <button type="button" id="zOut" aria-label="הקטן">−</button>
+        <button type="button" id="zRst" aria-label="איפוס תצוגה">⟳</button>
+      </div>
+    </div>
+    <div class="legend">
+      <span><i style="background:#3a4152"></i>אריח שלם</span>
+      <span><i style="background:#ff5252"></i>אריח חתוך (עם מידה)</span>
+      <span><i style="background:#8a93a6"></i>פוגה</span>
+      <span><i style="background:#2a2f3c;border:2px solid #ffb020"></i>ניכוי</span>
+    </div>
+    <p class="note">גרירה = הזזה · צביטה בשתי אצבעות = זום · המידות על החיתוכים בס״מ.</p>
+  </section>
+
+  <section class="card">
+    <h2>רשימת חיתוכים</h2>
+    <div class="tblwrap">
+      <table id="cutsTable">
+        <thead><tr><th>מידת החיתוך (ס״מ)</th><th>יח׳</th><th class="txt">מיקום</th><th class="txt">צורה</th></tr></thead>
+        <tbody></tbody>
+      </table>
+    </div>
+    <p class="note" id="cutsNote"></p>
+  </section>
+
+  <section class="card">
+    <h2>בדיקת קירות</h2>
+    <div class="tblwrap">
+      <table id="wallTable">
+        <thead><tr><th class="txt">קיר</th><th>חיתוך קצה</th><th class="txt">מצב</th></tr></thead>
+        <tbody></tbody>
+      </table>
+    </div>
+  </section>
+
+  <p class="foot">N.L Studio · מחשבון פריסת ריצוף · הבדיקה באתר בלבד, מומלץ לאמת מידות בשטח</p>
+</div>
+
+<div class="bar">
+  <div class="wrap">
+    <button class="btn primary" id="btnPdf" type="button">📄 PDF</button>
+    <button class="btn" id="btnShare" type="button">💬 וואטסאפ</button>
+    <button class="btn" id="btnPng" type="button">⬇ תמונה</button>
+  </div>
+</div>
+
+<div id="printArea"></div>
+
+<!-- ============ מנוע חישוב (לוגיקה טהורה, ניתן לבדיקה) ============ -->
+<script id="engine">
+(function (root) {
+  'use strict';
+  var EPS = 1e-7;
+
+  /* ---------- גאומטריה ---------- */
+  function polyArea(p) {
+    var a = 0, n = p.length;
+    for (var i = 0; i < n; i++) { var q = p[(i + 1) % n]; a += p[i].x * q.y - q.x * p[i].y; }
+    return Math.abs(a) / 2;
+  }
+  function bbox(p) {
+    var x0 = Infinity, y0 = Infinity, x1 = -Infinity, y1 = -Infinity;
+    for (var i = 0; i < p.length; i++) {
+      if (p[i].x < x0) x0 = p[i].x; if (p[i].x > x1) x1 = p[i].x;
+      if (p[i].y < y0) y0 = p[i].y; if (p[i].y > y1) y1 = p[i].y;
+    }
+    return { x0: x0, y0: y0, x1: x1, y1: y1, w: x1 - x0, h: y1 - y0 };
+  }
+  // חיתוך מצולע בחצי־מישור: שומר נקודות עם dir*(coord - val) >= 0
+  function clipAxis(poly, axis, val, dir) {
+    var res = [], n = poly.length;
+    for (var i = 0; i < n; i++) {
+      var A = poly[i], B = poly[(i + 1) % n];
+      var da = dir * ((axis ? A.y : A.x) - val);
+      var db = dir * ((axis ? B.y : B.x) - val);
+      if (da >= -EPS) res.push(A);
+      if ((da > EPS && db < -EPS) || (da < -EPS && db > EPS)) {
+        var t = da / (da - db);
+        res.push({ x: A.x + (B.x - A.x) * t, y: A.y + (B.y - A.y) * t });
+      }
+    }
+    return res;
+  }
+  function clipToRect(poly, r) {
+    var p = poly;
+    p = clipAxis(p, 0, r.x, 1); if (p.length < 3) return [];
+    p = clipAxis(p, 0, r.x + r.w, -1); if (p.length < 3) return [];
+    p = clipAxis(p, 1, r.y, 1); if (p.length < 3) return [];
+    p = clipAxis(p, 1, r.y + r.h, -1); if (p.length < 3) return [];
+    return p;
+  }
+  // מנקה קודקודים כפולים/צמודים
+  function clean(poly) {
+    var out = [];
+    for (var i = 0; i < poly.length; i++) {
+      var a = poly[i], b = out.length ? out[out.length - 1] : null;
+      if (!b || Math.abs(a.x - b.x) > 1e-5 || Math.abs(a.y - b.y) > 1e-5) out.push(a);
+    }
+    if (out.length > 2) {
+      var f = out[0], l = out[out.length - 1];
+      if (Math.abs(f.x - l.x) < 1e-5 && Math.abs(f.y - l.y) < 1e-5) out.pop();
+    }
+    return out;
+  }
+
+  /* ---------- פירוק שטח הרצפה למלבנים זרים (חדר פחות ניכויים) ---------- */
+  function floorRegions(W, H, deds) {
+    var xs = [0, W], ys = [0, H], i;
+    for (i = 0; i < deds.length; i++) {
+      var d = deds[i];
+      var a = Math.max(0, Math.min(W, d.x)), b = Math.max(0, Math.min(W, d.x + d.w));
+      var c = Math.max(0, Math.min(H, d.y)), e = Math.max(0, Math.min(H, d.y + d.h));
+      xs.push(a, b); ys.push(c, e);
+    }
+    var ux = uniqSorted(xs), uy = uniqSorted(ys), out = [];
+    for (i = 0; i < ux.length - 1; i++) {
+      for (var j = 0; j < uy.length - 1; j++) {
+        var rx = ux[i], ry = uy[j], rw = ux[i + 1] - ux[i], rh = uy[j + 1] - uy[j];
+        if (rw < 1e-4 || rh < 1e-4) continue;
+        var cx = rx + rw / 2, cy = ry + rh / 2, blocked = false;
+        for (var k = 0; k < deds.length; k++) {
+          var q = deds[k];
+          if (cx > q.x && cx < q.x + q.w && cy > q.y && cy < q.y + q.h) { blocked = true; break; }
+        }
+        if (!blocked) out.push({ x: rx, y: ry, w: rw, h: rh });
+      }
+    }
+    return out;
+  }
+  function uniqSorted(a) {
+    a = a.slice().sort(function (p, q) { return p - q; });
+    var o = [];
+    for (var i = 0; i < a.length; i++) if (!o.length || a[i] - o[o.length - 1] > 1e-4) o.push(a[i]);
+    return o;
+  }
+
+  /* ---------- תכנון ציר: היכן מתחילה הרשת ---------- */
+  // מחזיר off = הקואורדינטה של קצה האריח הראשון, בטווח (-pitch, 0]
+  // התכנון המאוזן: k אריחים שלמים + פוגה ביניהם, והשארית מתחלקת שווה לשני הקצוות.
+  // בקצה הקיר אין פוגה — רק החיתוך עצמו, ולכן: חיתוך = (שארית / 2) - פוגה.
+  function planAxis(len, tile, g, mode, shift, avoidNarrow) {
+    var pitch = tile + g;
+    var k = Math.floor((len + g) / pitch + 1e-9); if (k < 0) k = 0;
+    var r = len - (k * pitch - g);
+    if (r < -1e-9 && k > 0) { k -= 1; r = len - (k * pitch - g); }
+    var c = r / 2 - g, adjusted = false;
+    // כלל מקצועי: אין חיתוך קצה צר מ־1/3 אריח — מורידים אריח שלם ומגדילים את שני החיתוכים
+    if (avoidNarrow !== false && c > 1e-6 && c < tile / 3 - 1e-9 && k >= 1) {
+      k -= 1; r += pitch; c = r / 2 - g; adjusted = true;
+    }
+    var centerBase;
+    if (c > 1e-6) centerBase = c - tile;                       // חיתוך בשני הקצוות
+    else centerBase = (r / 2 > 1e-9) ? (r / 2 - pitch) : 0;    // התאמה מדויקת / רווח זניח בקיר
+    var base = (mode === 'center') ? centerBase : 0;
+    var off = base + (shift || 0);
+    while (off > 1e-9) off -= pitch;
+    while (off <= -pitch + 1e-9) off += pitch;
+    return {
+      off: off, pitch: pitch, balancedOff: centerBase,
+      balancedCut: Math.max(0, c), fullCount: k, adjusted: adjusted
+    };
+  }
+  function normOff(off, pitch) {
+    while (off > 1e-9) off -= pitch;
+    while (off <= -pitch + 1e-9) off += pitch;
+    return off;
+  }
+  // חיתוכי הקצה בציר עבור היסט נתון. 0 = אריח שלם בקיר (אין חיתוך)
+  function edgeCuts(len, tile, g, off) {
+    var pitch = tile + g;
+    var l = (off > -1e-9) ? 0 : (off + tile > 1e-6 ? off + tile : 0);
+    var k = Math.floor((len - off - 1e-9) / pitch);
+    var x = off + k * pitch;
+    var r = (x + tile <= len + 1e-6) ? 0 : (len - x);
+    if (r < 1e-6) r = 0;
+    return { l: l, r: r };
+  }
+  // ניקוד היסט: החיתוך הקטן ביותר בכל משפחות השורות (בריק/שליש) + מדד אי־סימטריה
+  function scoreOffset(len, tile, g, off, shifts) {
+    var pitch = tile + g, minCut = Infinity, asym = 0;
+    for (var i = 0; i < shifts.length; i++) {
+      var e = edgeCuts(len, tile, g, normOff(off + shifts[i], pitch));
+      if (e.l > 1e-6) minCut = Math.min(minCut, e.l);
+      if (e.r > 1e-6) minCut = Math.min(minCut, e.r);
+      asym += Math.abs((e.l || tile) - (e.r || tile));
+    }
+    return { min: minCut, asym: asym };
+  }
+  // ההיסט הטוב ביותר: כל החיתוכים ≥ ⅓ אריח, ומבין אלה — המאוזן ביותר
+  function bestOffset(len, tile, g, shifts, prefer) {
+    var pitch = tile + g, lim = tile / 3;
+    var N = Math.max(240, Math.round(pitch * 20)), i;
+    var cands = [normOff(prefer || 0, pitch)];
+    for (i = 0; i < N; i++) cands.push(normOff(-pitch + (i + 1) * pitch / N, pitch));
+    var best = null;
+    for (i = 0; i < cands.length; i++) {
+      var sc = scoreOffset(len, tile, g, cands[i], shifts);
+      var cap = Math.min(sc.min, lim + 1e-3);
+      if (!best || cap > best.cap + 0.02 || (cap > best.cap - 0.02 && sc.asym < best.asym - 0.02)) {
+        best = { off: cands[i], cap: cap, asym: sc.asym, min: sc.min };
+      }
+    }
+    return best;
+  }
+
+  // ההזזה המינימלית (בסימן) מ־from ל־to על ציר מחזורי pitch
+  function minShift(from, to, pitch) {
+    var d = (to - from) % pitch;
+    if (d > pitch / 2) d -= pitch;
+    if (d <= -pitch / 2) d += pitch;
+    return d;
+  }
+
+  /* ---------- בניית הפריסה ---------- */
+  function buildLayout(cfg) {
+    var W = +cfg.roomW, H = +cfg.roomH;
+    var tw = +cfg.tileW, th = +cfg.tileH, g = (+cfg.groutMm) / 10;
+    var pattern = cfg.pattern || 'grid', start = cfg.start || 'center';
+    var deds = (cfg.deductions || []).filter(function (d) { return d.w > 0 && d.h > 0; });
+    var diag = pattern === 'diag';
+    var ang = diag ? Math.PI / 4 : 0;
+    var cos = Math.cos(ang), sin = Math.sin(ang);
+    var err = [];
+    if (!(W > 0 && H > 0)) err.push('מידות החדר חייבות להיות גדולות מאפס');
+    if (!(tw > 0 && th > 0)) err.push('מידות האריח חייבות להיות גדולות מאפס');
+    if (err.length) return { error: err.join(' · '), tiles: [], floor: [] };
+
+    var floor = floorRegions(W, H, deds);
+    var floorArea = 0;
+    for (var fi = 0; fi < floor.length; fi++) floorArea += floor[fi].w * floor[fi].h;
+
+    // מרחב הרשת (u,v): בישר = זהה לחדר, באלכסון = מסובב 45°
+    var corners = [{ x: 0, y: 0 }, { x: W, y: 0 }, { x: W, y: H }, { x: 0, y: H }];
+    var uMin = Infinity, uMax = -Infinity, vMin = Infinity, vMax = -Infinity;
+    for (var ci = 0; ci < 4; ci++) {
+      var u = corners[ci].x * cos + corners[ci].y * sin;
+      var v = -corners[ci].x * sin + corners[ci].y * cos;
+      uMin = Math.min(uMin, u); uMax = Math.max(uMax, u);
+      vMin = Math.min(vMin, v); vMax = Math.max(vMax, v);
+    }
+    var uLen = uMax - uMin, vLen = vMax - vMin;
+
+    var avoid = cfg.avoidNarrow !== false;
+    var planX = planAxis(uLen, tw, g, diag ? 'center' : start, cfg.shiftX || 0, avoid);
+    var planY = planAxis(vLen, th, g, diag ? 'center' : start, cfg.shiftY || 0, avoid);
+    var px = planX.pitch, py = planY.pitch;
+
+    var rowShift = function () { return 0; };
+    if (pattern === 'brick') rowShift = function (j) { return (j % 2) * px / 2; };
+    else if (pattern === 'third') rowShift = function (j) { return ((j % 3) + 3) % 3 * px / 3; };
+
+    var jStart = Math.floor((0 - planY.off) / py) - 1;
+    var jEnd = Math.ceil((vLen - planY.off) / py) + 1;
+    var iSpan = Math.ceil(uLen / px) + 3;
+    var cells = (jEnd - jStart + 1) * (iSpan + 2);
+    if (cells > 120000) return { error: 'יותר מדי אריחים לחישוב (' + Math.round(cells) + '). בדוק מידות חדר/אריח.', tiles: [], floor: floor };
+
+    var tiles = [], fullCount = 0, cutCount = 0, usedArea = 0;
+    var tileArea = tw * th;
+
+    for (var j = jStart; j <= jEnd; j++) {
+      var v0 = planY.off + j * py + vMin;
+      var sh = rowShift(j);
+      var i0 = Math.floor((0 - (planX.off + sh)) / px) - 1;
+      var i1 = i0 + iSpan + 2;
+      for (var i = i0; i <= i1; i++) {
+        var u0 = planX.off + sh + i * px + uMin;
+        // ארבע פינות האריח במרחב העולם
+        var poly = [
+          rot(u0, v0, cos, sin), rot(u0 + tw, v0, cos, sin),
+          rot(u0 + tw, v0 + th, cos, sin), rot(u0, v0 + th, cos, sin)
+        ];
+        var bb = bbox(poly);
+        if (bb.x1 <= EPS || bb.y1 <= EPS || bb.x0 >= W - EPS || bb.y0 >= H - EPS) continue;
+
+        var pieces = [], area = 0;
+        for (var r = 0; r < floor.length; r++) {
+          var cp = clean(clipToRect(poly, floor[r]));
+          if (cp.length >= 3) {
+            var a = polyArea(cp);
+            if (a > tileArea * 1e-5 && a > 0.02) { pieces.push(cp); area += a; }
+          }
+        }
+        if (!pieces.length) continue;
+
+        var isFull = Math.abs(area - tileArea) < tileArea * 1e-4;
+        var t = { u: u0, v: v0, ang: ang, poly: poly, pieces: pieces, area: area, full: isFull, row: j, col: i };
+        if (isFull) { fullCount++; }
+        else {
+          cutCount++;
+          describeCut(t, W, H, tw, th, deds, diag);
+        }
+        usedArea += area;
+        tiles.push(t);
+      }
+    }
+
+    return {
+      tiles: tiles, floor: floor, floorArea: floorArea, coveredArea: usedArea,
+      fullCount: fullCount, cutCount: cutCount,
+      planX: planX, planY: planY, pitchX: px, pitchY: py,
+      grout: g, tileW: tw, tileH: th, roomW: W, roomH: H,
+      pattern: pattern, start: start, diag: diag, deductions: deds,
+      uLen: uLen, vLen: vLen,
+      rowShifts: pattern === 'brick' ? [0, px / 2] : pattern === 'third' ? [0, px / 3, 2 * px / 3] : [0]
+    };
+  }
+  function rot(u, v, cos, sin) { return { x: u * cos - v * sin, y: u * sin + v * cos }; }
+
+  var WALL = { top: 'קיר עליון', bottom: 'קיר תחתון', left: 'קיר שמאל', right: 'קיר ימין' };
+
+  function describeCut(t, W, H, tw, th, deds, diag) {
+    var all = [];
+    for (var i = 0; i < t.pieces.length; i++) all = all.concat(t.pieces[i]);
+    var bb = bbox(all);
+    t.bb = bb;
+    var e = 0.05;
+    // קיר נספר רק אם הוא זה שחתך את האריח (יש קיצור בציר הניצב לו)
+    var cutX = diag || bb.w < tw - e, cutY = diag || bb.h < th - e;
+    var walls = [];
+    if (cutY && bb.y0 <= e) walls.push('top');
+    if (cutY && bb.y1 >= H - e) walls.push('bottom');
+    if (cutX && bb.x0 <= e) walls.push('left');
+    if (cutX && bb.x1 >= W - e) walls.push('right');
+
+    // האם החיתוך נובע מניכוי?
+    var byDed = null;
+    for (var k = 0; k < deds.length; k++) {
+      var d = deds[k];
+      if (bb.x1 > d.x + e && bb.x0 < d.x + d.w - e && bb.y1 > d.y + e && bb.y0 < d.y + d.h - e) { byDed = d; break; }
+    }
+    t.walls = walls;
+    t.byDed = byDed;
+    t.place = byDed ? ('סביב ' + (byDed.name || 'ניכוי'))
+      : walls.length === 0 ? 'פנימי'
+      : walls.length === 1 ? WALL[walls[0]]
+      : 'פינה ' + walls.map(function (w) { return WALL[w].replace('קיר ', ''); }).join('־');
+
+    // צורה + מידות. אריח שנחתך על גבול ניכוי עשוי להתפצל למספר חלקים,
+    // אבל אם יחד הם ממלאים את המלבן החוסם — זהו חיתוך מלבני פשוט.
+    var single = t.pieces.length === 1 ? t.pieces[0] : null;
+    var rectLike = !diag && Math.abs(t.area - bb.w * bb.h) < Math.max(0.05, bb.w * bb.h * 1e-3);
+    t.shape = rectLike ? 'מלבן'
+      : (single && single.length === 3) ? 'משולש'
+      : (single && single.length === 4 && diag) ? 'טרפז'
+      : (single && single.length > 4) ? 'מצולע'
+      : 'מורכב';
+    t.cw = bb.w; t.ch = bb.h; t.cutX = cutX; t.cutY = cutY;
+    // באלכסון המידה המעשית היא של המלבן החוסם
+    t.exact = rectLike;
+  }
+
+  /* ---------- ניתוח: כמויות, חיתוכים, קירות, אזהרות ---------- */
+  function analyze(L, opt) {
+    opt = opt || {};
+    var wastePct = opt.wastePct == null ? 10 : +opt.wastePct;
+    var perPack = Math.max(1, Math.round(opt.perPack || 1));
+    var need = L.fullCount + L.cutCount;
+    var withWaste = Math.ceil(need * (1 + wastePct / 100));
+    var packs = Math.ceil(withWaste / perPack);
+
+    // קיבוץ חיתוכים
+    var map = {}, order = [];
+    for (var i = 0; i < L.tiles.length; i++) {
+      var t = L.tiles[i];
+      if (t.full) continue;
+      var w = r1(t.cw), h = r1(t.ch);
+      var key = w + '|' + h + '|' + t.place + '|' + t.shape;
+      if (!map[key]) { map[key] = { w: w, h: h, place: t.place, shape: t.shape, n: 0 }; order.push(key); }
+      map[key].n++;
+    }
+    var cuts = order.map(function (k) { return map[k]; }).sort(function (a, b) {
+      return b.n - a.n || a.w - b.w;
+    });
+
+    // בדיקת קירות: החיתוך הקטן בכל קיר (הניצב לקיר)
+    var wallStat = { top: [], bottom: [], left: [], right: [] };
+    for (i = 0; i < L.tiles.length; i++) {
+      var q = L.tiles[i];
+      if (q.full || q.byDed || !q.walls) continue;
+      for (var wi = 0; wi < q.walls.length; wi++) {
+        var wname = q.walls[wi];
+        var dim = (wname === 'left' || wname === 'right') ? q.cw : q.ch;
+        var span = (wname === 'left' || wname === 'right') ? L.tileW : L.tileH;
+        if (dim < span - 0.05) wallStat[wname].push(r1(dim));
+      }
+    }
+    var walls = {};
+    ['top', 'bottom', 'left', 'right'].forEach(function (w) {
+      var arr = wallStat[w];
+      walls[w] = {
+        name: WALL[w],
+        has: arr.length > 0,
+        min: arr.length ? Math.min.apply(null, arr) : null,
+        max: arr.length ? Math.max.apply(null, arr) : null,
+        count: arr.length,
+        limit: (w === 'left' || w === 'right') ? L.tileW / 3 : L.tileH / 3
+      };
+    });
+
+    // אזהרות מקצועיות
+    var warn = [], ok = [];
+    var pairs = [['left', 'right', 'X', L.tileW, L.pitchX, L.planX],
+                 ['top', 'bottom', 'Y', L.tileH, L.pitchY, L.planY]];
+    for (var pi = 0; pi < pairs.length; pi++) {
+      var a = walls[pairs[pi][0]], b = walls[pairs[pi][1]];
+      var axis = pairs[pi][2], span = pairs[pi][3], pitch = pairs[pi][4], plan = pairs[pi][5];
+      var lim = span / 3;
+      var worst = null;
+      if (a.has) worst = a.min;
+      if (b.has) worst = worst == null ? b.min : Math.min(worst, b.min);
+      if (worst != null && worst < lim - 0.05) {
+        var sh = 0, helps = false;
+        if (!L.diag) {
+          var ref = planAxis(axis === 'X' ? L.uLen : L.vLen, span, L.grout, 'center', 0, true);
+          var bo = bestOffset(axis === 'X' ? L.uLen : L.vLen, span, L.grout,
+                              axis === 'X' ? L.rowShifts : [0], ref.balancedOff);
+          sh = minShift(plan.off, bo.off, pitch);
+          helps = bo.cap > worst + 0.05 && Math.abs(sh) > 0.05;
+        }
+        warn.push({
+          axis: axis,
+          type: 'narrow',
+          msg: 'חיתוך צר מדי (' + fmt(worst) + ' ס״מ) ב' + (a.has && a.min === worst ? a.name : b.name) +
+               ' — מתחת ל־⅓ אריח (' + fmt(lim) + ' ס״מ).',
+          shift: helps ? r1(Math.abs(sh)) : 0,
+          dir: helps ? sh : 0,
+          fix: helps
+            ? 'מומלץ להזיז את ההתחלה ב־' + fmt(Math.abs(sh)) + ' ס״מ ' + dirName(axis, sh) + ' כדי לאזן את החיתוכים בשני הצדדים.'
+            : (L.diag
+                ? 'בפריסה אלכסונית מידות החיתוך בקצה נקבעות לפי זווית הקיר — אפשר להזיז ידנית את הרשת או לעבור לדגם ישר.'
+                : 'אין הזזה שמונעת חיתוך צר במידות האלה — שקול לשנות את גודל הפוגה, את דגם הפריסה או את מידת האריח.')
+        });
+      }
+      if (L.start === 'center' && !L.diag && a.has && b.has && Math.abs(a.min - b.min) < 0.15) {
+        ok.push('החיתוכים ב' + a.name + ' וב' + b.name + ' שווים — ' + fmt(a.min) + ' ס״מ בכל צד');
+      } else if (L.start === 'center' && !L.diag && a.has && b.has) {
+        warn.push({ axis: axis, type: 'unbalanced',
+          msg: 'החיתוכים בקירות הנגדיים אינם שווים: ' + a.name + ' ' + fmt(a.min) + ' ס״מ מול ' + b.name + ' ' + fmt(b.min) + ' ס״מ.',
+          shift: r1(Math.abs(minShift(L[axis === 'X' ? 'planX' : 'planY'].off, plan.balancedOff, pitch))),
+          dir: minShift(plan.off, plan.balancedOff, pitch),
+          fix: 'אפס את ההזזה או הפעל איזון אוטומטי כדי להשוות.' });
+      }
+    }
+
+    return {
+      need: need, withWaste: withWaste, packs: packs, perPack: perPack, wastePct: wastePct,
+      full: L.fullCount, cut: L.cutCount,
+      areaM2: L.floorArea / 10000,
+      packAreaM2: perPack * L.tileW * L.tileH / 10000,
+      cuts: cuts, walls: walls, warnings: warn, oks: ok
+    };
+  }
+  function dirName(axis, sh) {
+    if (axis === 'X') return sh > 0 ? 'ימינה בתוכנית' : 'שמאלה בתוכנית';
+    return sh > 0 ? 'למטה בתוכנית' : 'למעלה בתוכנית';
+  }
+  function r1(v) { return Math.round(v * 10) / 10; }
+  function fmt(v) {
+    var n = Math.round(v * 10) / 10;
+    return (Math.abs(n - Math.round(n)) < 0.05) ? String(Math.round(n)) : n.toFixed(1);
+  }
+
+  root.TileEngine = {
+    polyArea: polyArea, bbox: bbox, clipToRect: clipToRect, floorRegions: floorRegions,
+    planAxis: planAxis, minShift: minShift, edgeCuts: edgeCuts, bestOffset: bestOffset, buildLayout: buildLayout, analyze: analyze,
+    fmt: fmt, r1: r1, WALL: WALL
+  };
+})(typeof window !== 'undefined' ? window : globalThis);
+</script>
+
+<!-- ============ ממשק, הדמיה וייצוא ============ -->
+<script>
+(function () {
+  'use strict';
+  var E = window.TileEngine, fmt = E.fmt;
+  var $ = function (id) { return document.getElementById(id); };
+
+  var UI = {
+    pattern: 'grid', start: 'center', deds: [], img: null, imgName: '',
+    view: { zoom: 1, panX: 0, panY: 0 }, L: null, A: null, cfg: null, autoMsgs: []
+  };
+  var PAT_NAME = { grid: 'ישר (רשת)', brick: 'חצי אריח (בריק)', third: 'שליש אריח', diag: 'אלכסון 45°' };
+  var START_NAME = { center: 'ממרכז החדר', corner: 'מפינה' };
+  var DED_TYPES = ['עמוד', 'ארון', 'נישה', 'אחר'];
+
+  /* ---------- ניכויים ---------- */
+  function dedRow(d, idx) {
+    var row = document.createElement('div');
+    row.className = 'dedrow';
+    row.innerHTML =
+      '<div><label>סוג</label><select data-f="type">' +
+      DED_TYPES.map(function (t) { return '<option' + (t === d.type ? ' selected' : '') + '>' + t + '</option>'; }).join('') +
+      '</select></div>' +
+      '<div><label>X</label><input type="number" inputmode="decimal" data-f="x" value="' + d.x + '"></div>' +
+      '<div><label>Y</label><input type="number" inputmode="decimal" data-f="y" value="' + d.y + '"></div>' +
+      '<div><label>רוחב</label><input type="number" inputmode="decimal" data-f="w" value="' + d.w + '"></div>' +
+      '<div><label>גובה</label><input type="number" inputmode="decimal" data-f="h" value="' + d.h + '"></div>' +
+      '<button class="x" type="button" aria-label="מחק">✕</button>';
+    row.querySelectorAll('[data-f]').forEach(function (el) {
+      el.addEventListener('input', function () {
+        var f = el.getAttribute('data-f');
+        d[f] = f === 'type' ? el.value : (parseFloat(el.value) || 0);
+        schedule();
+      });
+      el.addEventListener('change', function () {
+        var f = el.getAttribute('data-f');
+        d[f] = f === 'type' ? el.value : (parseFloat(el.value) || 0);
+        schedule();
+      });
+    });
+    row.querySelector('.x').addEventListener('click', function () {
+      UI.deds.splice(UI.deds.indexOf(d), 1); renderDeds(); schedule();
+    });
+    return row;
+  }
+  function renderDeds() {
+    var box = $('dedList'); box.innerHTML = '';
+    UI.deds.forEach(function (d, i) { box.appendChild(dedRow(d, i)); });
+  }
+  $('addDed').addEventListener('click', function () {
+    UI.deds.push({ type: 'עמוד', x: 0, y: 0, w: 30, h: 30 });
+    renderDeds(); schedule();
+  });
+
+  /* ---------- קלט ---------- */
+  function num(id, def) { var v = parseFloat($(id).value); return isFinite(v) ? v : def; }
+  function readCfg() {
+    return {
+      roomW: num('roomW', 0), roomH: num('roomH', 0),
+      tileW: num('tileW', 0), tileH: num('tileH', 0),
+      groutMm: Math.max(0, num('grout', 0)),
+      pattern: UI.pattern, start: UI.start,
+      shiftX: num('shiftX', 0), shiftY: num('shiftY', 0),
+      avoidNarrow: $('autoBalance').checked,
+      deductions: UI.deds.map(function (d, i) {
+        return { name: d.type + (countType(d.type) > 1 ? ' ' + (typeIndex(d, i)) : ''), type: d.type, x: +d.x, y: +d.y, w: +d.w, h: +d.h };
+      })
+    };
+  }
+  function countType(t) { return UI.deds.filter(function (d) { return d.type === t; }).length; }
+  function typeIndex(d) { return UI.deds.filter(function (q) { return q.type === d.type; }).indexOf(d) + 1; }
+
+  /* ---------- מקטעים (דגם / התחלה) ---------- */
+  function seg(id, key) {
+    var box = $(id);
+    box.addEventListener('click', function (e) {
+      var b = e.target.closest('button'); if (!b) return;
+      UI[key] = b.getAttribute('data-v');
+      box.querySelectorAll('button').forEach(function (x) {
+        x.setAttribute('aria-pressed', x === b ? 'true' : 'false');
+      });
+      schedule();
+    });
+  }
+  seg('patternSeg', 'pattern'); seg('startSeg', 'start');
+
+  $('swapTile').addEventListener('click', function () {
+    var a = $('tileW').value; $('tileW').value = $('tileH').value; $('tileH').value = a; schedule();
+  });
+  $('tilePreset').addEventListener('change', function () {
+    var v = this.value; if (!v) return;
+    var p = v.split('x'); $('tileW').value = p[0]; $('tileH').value = p[1];
+    this.value = ''; schedule();
+  });
+  $('tileImg').addEventListener('change', function () {
+    var f = this.files && this.files[0];
+    if (!f) return clearImg();
+    var fr = new FileReader();
+    fr.onload = function () {
+      var im = new Image();
+      im.onload = function () {
+        UI.img = im; UI.imgName = f.name;
+        $('imgPrev').src = fr.result; $('imgPrev').classList.remove('hide');
+        $('imgName').textContent = f.name;
+        $('rmImg').classList.remove('hide');
+        draw();
+      };
+      im.onerror = function () { $('imgName').textContent = 'לא ניתן לטעון את התמונה'; };
+      im.src = fr.result;
+    };
+    fr.readAsDataURL(f);
+  });
+  function clearImg() {
+    UI.img = null; UI.imgName = '';
+    $('tileImg').value = '';
+    $('imgPrev').classList.add('hide'); $('rmImg').classList.add('hide');
+    $('imgName').textContent = 'לא נבחרה תמונה — האריחים יוצגו בצבע אחיד';
+    draw();
+  }
+  $('rmImg').addEventListener('click', clearImg);
+
+  ['roomW', 'roomH', 'tileW', 'tileH', 'grout', 'shiftX', 'shiftY', 'perPack', 'waste'].forEach(function (id) {
+    $(id).addEventListener('input', schedule);
+  });
+  $('autoBalance').addEventListener('change', schedule);
+
+  var timer = null;
+  function schedule() { clearTimeout(timer); timer = setTimeout(compute, 90); save(); }
+
+  /* ---------- חישוב ---------- */
+  function compute() {
+    var base = readCfg();
+    var cfg = JSON.parse(JSON.stringify(base));
+    UI.autoMsgs = [];
+    var L = E.buildLayout(cfg);
+    if (L.error) { showError(L.error); return; }
+    var opt = { wastePct: Math.max(0, num('waste', 10)), perPack: Math.max(1, num('perPack', 1)) };
+    var A = E.analyze(L, opt);
+
+    if ($('autoBalance').checked) {
+      for (var pass = 0; pass < 4; pass++) {
+        var narrow = A.warnings.filter(function (w) { return w.type === 'narrow' && Math.abs(w.dir) > 0.05; });
+        if (!narrow.length) break;
+        narrow.forEach(function (w) {
+          if (w.axis === 'X') cfg.shiftX += w.dir; else cfg.shiftY += w.dir;
+          UI.autoMsgs.push('אוזן אוטומטית: ההתחלה הוזזה ב־' + fmt(Math.abs(w.dir)) + ' ס״מ ' +
+            (w.axis === 'X' ? (w.dir > 0 ? 'ימינה' : 'שמאלה') : (w.dir > 0 ? 'למטה' : 'למעלה')) +
+            ' כדי למנוע חיתוך צר מ־⅓ אריח.');
+        });
+        var L2 = E.buildLayout(cfg);
+        if (L2.error) break;
+        L = L2; A = E.analyze(L, opt);
+      }
+    }
+    UI.L = L; UI.A = A; UI.cfg = cfg;
+    renderOut(); draw();
+  }
+  function showError(msg) {
+    $('alerts').innerHTML = '<div class="msg bad">' + msg + '</div>';
+    ['oTotal', 'oFull', 'oCut', 'oNeed', 'oPacks', 'oArea', 'oPackArea'].forEach(function (i) { $(i).textContent = '–'; });
+    $('cutsTable').querySelector('tbody').innerHTML = '';
+    $('wallTable').querySelector('tbody').innerHTML = '';
+  }
+
+  /* ---------- פלט ---------- */
+  function renderOut() {
+    var L = UI.L, A = UI.A;
+    $('areaNote').textContent = 'שטח ברוטו: ' + fmt(L.roomW * L.roomH / 10000) + ' מ״ר' +
+      (L.deductions.length ? ' · נטו לריצוף: ' + fmt(A.areaM2) + ' מ״ר' : '');
+    $('oTotal').textContent = A.withWaste;
+    $('oFull').textContent = A.full;
+    $('oCut').textContent = A.cut;
+    $('oNeed').textContent = A.need;
+    $('oPacks').textContent = A.packs;
+    $('oArea').textContent = fmt(A.areaM2) + ' מ״ר';
+    $('oPackArea').textContent = fmt(A.packAreaM2) + ' מ״ר';
+
+    // התראות
+    var h = '';
+    UI.autoMsgs.forEach(function (m) { h += '<div class="msg ok">⚖️ ' + m + '</div>'; });
+    A.warnings.forEach(function (w, i) {
+      h += '<div class="msg warn">⚠️ ' + w.msg + '<br><b>' + w.fix + '</b>' +
+        (w.type === 'narrow' && Math.abs(w.dir) > 0.05 ?
+          '<button class="btn sm ghost" style="margin-top:8px" data-fix="' + i + '">החל את ההזזה</button>' : '') +
+        '</div>';
+    });
+    A.oks.forEach(function (m) { h += '<div class="msg ok">✅ ' + m + '</div>'; });
+    if (!A.warnings.length && !A.oks.length && !UI.autoMsgs.length) {
+      h += '<div class="msg ok">✅ הפריסה תקינה — אין חיתוכים צרים מ־⅓ אריח.</div>';
+    }
+    $('alerts').innerHTML = h;
+    $('alerts').querySelectorAll('[data-fix]').forEach(function (b) {
+      b.addEventListener('click', function () {
+        var w = A.warnings[+b.getAttribute('data-fix')];
+        if (w.axis === 'X') $('shiftX').value = Math.round((num('shiftX', 0) + w.dir) * 10) / 10;
+        else $('shiftY').value = Math.round((num('shiftY', 0) + w.dir) * 10) / 10;
+        compute(); save();
+      });
+    });
+
+    // טבלת חיתוכים
+    var tb = $('cutsTable').querySelector('tbody'); tb.innerHTML = '';
+    A.cuts.forEach(function (c) {
+      var tr = document.createElement('tr');
+      tr.innerHTML = '<td class="num">' + fmt(c.w) + ' × ' + fmt(c.h) + '</td>' +
+        '<td class="num">' + c.n + '</td><td class="txt">' + c.place + '</td><td class="txt">' + c.shape + '</td>';
+      tb.appendChild(tr);
+    });
+    $('cutsNote').textContent = A.cuts.length
+      ? A.cuts.length + ' סוגי חיתוך · סה״כ ' + A.cut + ' אריחים לחיתוך' +
+        (L.diag ? ' · באלכסון המידה היא של המלבן החוסם את החתיכה' : '')
+      : 'אין חיתוכים — הפריסה יוצאת שלמה.';
+
+    // בדיקת קירות
+    var wb = $('wallTable').querySelector('tbody'); wb.innerHTML = '';
+    ['top', 'bottom', 'left', 'right'].forEach(function (k) {
+      var w = A.walls[k], tr = document.createElement('tr');
+      var st, col;
+      if (!w.has) { st = 'שלמים'; col = 'var(--ok)'; }
+      else if (w.min < w.limit - 0.05) { st = 'צר מ־⅓'; col = 'var(--bad)'; }
+      else { st = 'תקין'; col = 'var(--ok)'; }
+      tr.innerHTML = '<td class="txt">' + w.name + '</td><td class="num">' +
+        (w.has ? (w.min === w.max ? fmt(w.min) + ' ס״מ' : fmt(w.min) + '–' + fmt(w.max) + ' ס״מ') : '—') +
+        '</td><td class="txt" style="color:' + col + ';font-weight:800">' + st + '</td>';
+      wb.appendChild(tr);
+    });
+  }
+
+  /* ---------- הדמיה ---------- */
+  var cv = $('plan'), ctx = cv.getContext('2d');
+  function sizeCanvas() {
+    var L = UI.L; if (!L || L.error) return;
+    var w = cv.parentNode.getBoundingClientRect().width;
+    var want = (w - 80) * (L.roomH / L.roomW) + 96;
+    var maxH = Math.max(300, Math.min(560, window.innerHeight * 0.66));
+    cv.style.height = Math.round(Math.max(300, Math.min(maxH, want))) + 'px';
+  }
+  function fitCanvas() {
+    var r = cv.getBoundingClientRect(), dpr = Math.min(window.devicePixelRatio || 1, 2);
+    cv.width = Math.max(1, Math.round(r.width * dpr));
+    cv.height = Math.max(1, Math.round(r.height * dpr));
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    return { w: r.width, h: r.height };
+  }
+  function draw() {
+    sizeCanvas();
+    var box = fitCanvas(), L = UI.L;
+    ctx.clearRect(0, 0, box.w, box.h);
+    ctx.fillStyle = '#0b0f16'; ctx.fillRect(0, 0, box.w, box.h);
+    if (!L || L.error) return;
+
+    // שוליים: מקום לתוויות הקירות למעלה/בצדדים ולכפתורי הזום למטה
+    var padX = 40, padT = 30, padB = 66;
+    var s0 = Math.min((box.w - padX * 2) / L.roomW, (box.h - padT - padB) / L.roomH);
+    var s = s0 * UI.view.zoom;
+    var ox = box.w / 2 - (L.roomW / 2) * s + UI.view.panX;
+    var oy = padT + (box.h - padT - padB - L.roomH * s0) / 2 + (L.roomH * (s0 - s)) / 2 + UI.view.panY;
+    var X = function (x) { return ox + x * s; }, Y = function (y) { return oy + y * s; };
+
+    // רקע = צבע פוגה על כל שטח הרצפה
+    ctx.fillStyle = '#8a93a6';
+    L.floor.forEach(function (r) { ctx.fillRect(X(r.x), Y(r.y), r.w * s, r.h * s); });
+
+    var heavy = L.tiles.length > 2600;
+    var useImg = UI.img && !heavy;
+
+    // אריחים
+    for (var i = 0; i < L.tiles.length; i++) {
+      var t = L.tiles[i];
+      for (var p = 0; p < t.pieces.length; p++) {
+        var pc = t.pieces[p];
+        ctx.save();
+        ctx.beginPath();
+        ctx.moveTo(X(pc[0].x), Y(pc[0].y));
+        for (var k = 1; k < pc.length; k++) ctx.lineTo(X(pc[k].x), Y(pc[k].y));
+        ctx.closePath();
+        ctx.clip();
+        if (useImg) {
+          ctx.translate(X(t.poly[0].x), Y(t.poly[0].y));
+          if (t.ang) ctx.rotate(t.ang);
+          ctx.drawImage(UI.img, 0, 0, L.tileW * s, L.tileH * s);
+        } else {
+          var v = ((t.row * 7 + t.col * 13) % 5) * 3;
+          ctx.fillStyle = t.full ? 'rgb(' + (58 + v) + ',' + (65 + v) + ',' + (82 + v) + ')' : 'rgb(' + (74 + v) + ',' + (58 + v) + ',' + (62 + v) + ')';
+          ctx.fillRect(-2, -2, box.w + 4, box.h + 4);
+        }
+        ctx.restore();
+
+        if (!t.full) {
+          ctx.save();
+          ctx.beginPath();
+          ctx.moveTo(X(pc[0].x), Y(pc[0].y));
+          for (var k2 = 1; k2 < pc.length; k2++) ctx.lineTo(X(pc[k2].x), Y(pc[k2].y));
+          ctx.closePath();
+          ctx.strokeStyle = 'rgba(255,82,82,.95)';
+          ctx.lineWidth = Math.max(1.2, Math.min(2.4, s * 0.4));
+          ctx.stroke();
+          ctx.fillStyle = 'rgba(255,82,82,.16)';
+          ctx.fill();
+          ctx.restore();
+        }
+      }
+      // מידת החיתוך
+      if (!t.full && t.bb) {
+        var bw = t.bb.w * s, bh = t.bb.h * s;
+        // מציגים רק את המידה שנחתכה בפועל; אם נחתך בשני הצירים — שתיהן
+        var label = (t.cutX && t.cutY) ? (fmt(t.cw) + '×' + fmt(t.ch))
+                  : t.cutX ? fmt(t.cw) : fmt(t.ch);
+        if (bw > 22 && bh > 13) {
+          ctx.save();
+          var fs = Math.max(8, Math.min(14, bh * 0.5));
+          ctx.font = '800 ' + fs + 'px "Assistant",system-ui,Arial';
+          while (fs > 7.5 && ctx.measureText(label).width > bw - 6) {
+            fs -= 0.5; ctx.font = '800 ' + fs + 'px "Assistant",system-ui,Arial';
+          }
+          if (ctx.measureText(label).width <= bw - 4) {
+            ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+            var big = t.pieces[0];
+            for (var q = 1; q < t.pieces.length; q++) if (t.pieces[q].length > big.length) big = t.pieces[q];
+            var ce = centroid(big);
+            var cxp = X(ce.x), cyp = Y(ce.y);
+            var tw2 = ctx.measureText(label).width;
+            ctx.fillStyle = 'rgba(8,10,14,.85)';
+            ctx.fillRect(cxp - tw2 / 2 - 3, cyp - fs * 0.75, tw2 + 6, fs * 1.5);
+            ctx.fillStyle = '#ff9a9a';
+            ctx.fillText(label, cxp, cyp);
+          }
+          ctx.restore();
+        }
+      }
+    }
+
+    // ניכויים
+    L.deductions.forEach(function (d) {
+      ctx.save();
+      ctx.fillStyle = '#2a2f3c';
+      ctx.fillRect(X(d.x), Y(d.y), d.w * s, d.h * s);
+      ctx.strokeStyle = '#ffb020'; ctx.lineWidth = 2; ctx.setLineDash([7, 5]);
+      ctx.strokeRect(X(d.x), Y(d.y), d.w * s, d.h * s);
+      ctx.setLineDash([]);
+      if (d.w * s > 40 && d.h * s > 18) {
+        ctx.fillStyle = '#ffd489';
+        ctx.font = '800 ' + Math.min(14, d.h * s * 0.4) + 'px "Assistant",system-ui,Arial';
+        ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+        ctx.fillText(d.name, X(d.x + d.w / 2), Y(d.y + d.h / 2));
+      }
+      ctx.restore();
+    });
+
+    // גבול החדר + תוויות קירות ומידות
+    ctx.strokeStyle = '#ffffff'; ctx.lineWidth = 3;
+    ctx.strokeRect(X(0), Y(0), L.roomW * s, L.roomH * s);
+    ctx.font = '800 12px "Assistant",system-ui,Arial';
+    ctx.fillStyle = '#b7c6da';
+    ctx.textAlign = 'center'; ctx.textBaseline = 'alphabetic';
+    ctx.fillText('קיר עליון · ' + fmt(L.roomW) + ' ס״מ', X(L.roomW / 2), Y(0) - 10);
+    ctx.textBaseline = 'top';
+    ctx.fillText('קיר תחתון', X(L.roomW / 2), Y(L.roomH) + 8);
+    ctx.save();
+    ctx.translate(X(0) - 12, Y(L.roomH / 2)); ctx.rotate(-Math.PI / 2);
+    ctx.textBaseline = 'alphabetic'; ctx.textAlign = 'center';
+    ctx.fillText('קיר שמאל · ' + fmt(L.roomH) + ' ס״מ', 0, 0);
+    ctx.restore();
+    ctx.save();
+    ctx.translate(X(L.roomW) + 14, Y(L.roomH / 2)); ctx.rotate(-Math.PI / 2);
+    ctx.textAlign = 'center'; ctx.textBaseline = 'top';
+    ctx.fillText('קיר ימין', 0, 0);
+    ctx.restore();
+
+    if (heavy && UI.img) {
+      ctx.fillStyle = '#ffb020'; ctx.textAlign = 'center'; ctx.textBaseline = 'top';
+      ctx.font = '700 12px "Assistant",system-ui,Arial';
+      ctx.fillText('הרבה אריחים — הטקסטורה הוסתרה לשמירה על מהירות', box.w / 2, 6);
+    }
+  }
+
+  function centroid(poly) {
+    var a = 0, cx = 0, cy = 0, n = poly.length;
+    for (var i = 0; i < n; i++) {
+      var p1 = poly[i], p2 = poly[(i + 1) % n], f = p1.x * p2.y - p2.x * p1.y;
+      a += f; cx += (p1.x + p2.x) * f; cy += (p1.y + p2.y) * f;
+    }
+    if (Math.abs(a) < 1e-9) {
+      var b = E.bbox(poly); return { x: b.x0 + b.w / 2, y: b.y0 + b.h / 2 };
+    }
+    return { x: cx / (3 * a), y: cy / (3 * a) };
+  }
+
+  /* ---------- זום והזזה ---------- */
+  var pts = {}, lastDist = 0, lastMid = null;
+  cv.addEventListener('pointerdown', function (e) {
+    cv.setPointerCapture(e.pointerId);
+    pts[e.pointerId] = { x: e.clientX, y: e.clientY };
+    lastDist = 0; lastMid = null;
+  });
+  cv.addEventListener('pointermove', function (e) {
+    if (!pts[e.pointerId]) return;
+    var ids = Object.keys(pts);
+    var prev = pts[e.pointerId];
+    pts[e.pointerId] = { x: e.clientX, y: e.clientY };
+    if (ids.length === 1) {
+      UI.view.panX += e.clientX - prev.x;
+      UI.view.panY += e.clientY - prev.y;
+      draw();
+    } else if (ids.length >= 2) {
+      var a = pts[ids[0]], b = pts[ids[1]];
+      var d = Math.hypot(a.x - b.x, a.y - b.y);
+      var mid = { x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 };
+      if (lastDist) {
+        var f = d / lastDist;
+        UI.view.zoom = Math.max(0.4, Math.min(14, UI.view.zoom * f));
+        if (lastMid) { UI.view.panX += mid.x - lastMid.x; UI.view.panY += mid.y - lastMid.y; }
+        draw();
+      }
+      lastDist = d; lastMid = mid;
+    }
+  });
+  ['pointerup', 'pointercancel', 'pointerleave'].forEach(function (ev) {
+    cv.addEventListener(ev, function (e) { delete pts[e.pointerId]; lastDist = 0; lastMid = null; });
+  });
+  cv.addEventListener('wheel', function (e) {
+    e.preventDefault();
+    UI.view.zoom = Math.max(0.4, Math.min(14, UI.view.zoom * (e.deltaY < 0 ? 1.12 : 0.89)));
+    draw();
+  }, { passive: false });
+  $('zIn').addEventListener('click', function () { UI.view.zoom = Math.min(14, UI.view.zoom * 1.3); draw(); });
+  $('zOut').addEventListener('click', function () { UI.view.zoom = Math.max(0.4, UI.view.zoom / 1.3); draw(); });
+  $('zRst').addEventListener('click', function () { UI.view = { zoom: 1, panX: 0, panY: 0 }; draw(); });
+  window.addEventListener('resize', function () { draw(); });
+  window.addEventListener('orientationchange', function () { setTimeout(draw, 250); });
+
+  /* ---------- סיכום טקסטואלי ---------- */
+  function summaryText() {
+    var L = UI.L, A = UI.A;
+    if (!L) return '';
+    return '*חישוב פריסת ריצוף — N.L Studio*\n' +
+      'חדר: ' + fmt(L.roomW) + '×' + fmt(L.roomH) + ' ס״מ (' + fmt(A.areaM2) + ' מ״ר נטו)\n' +
+      'אריח: ' + fmt(L.tileW) + '×' + fmt(L.tileH) + ' ס״מ · פוגה ' + fmt(L.grout * 10) + ' מ״מ\n' +
+      'דגם: ' + PAT_NAME[L.pattern] + ' · התחלה: ' + START_NAME[L.start] + '\n' +
+      'אריחים שלמים: ' + A.full + '\nאריחים חתוכים: ' + A.cut + '\n' +
+      'סה״כ כולל ' + A.wastePct + '% פחת: *' + A.withWaste + ' אריחים*\n' +
+      'חבילות לקנות: *' + A.packs + '* (' + A.perPack + ' בחבילה)';
+  }
+
+  /* ---------- ייצוא ---------- */
+  function buildPrint() {
+    var L = UI.L, A = UI.A;
+    if (!L) return;
+    var img = cv.toDataURL('image/png');
+    var d = new Date();
+    var date = d.getDate() + '/' + (d.getMonth() + 1) + '/' + d.getFullYear();
+    var h = '<div dir="rtl" style="font-family:Assistant,Arial,sans-serif">' +
+      '<h1>דו״ח פריסת ריצוף — N.L Studio</h1>' +
+      '<div style="font-size:13px">תאריך: ' + date + '</div>' +
+      '<h2>נתונים</h2><div class="pgrid">' +
+      '<div>חדר: ' + fmt(L.roomW) + '×' + fmt(L.roomH) + ' ס״מ</div>' +
+      '<div>שטח נטו: ' + fmt(A.areaM2) + ' מ״ר</div>' +
+      '<div>אריח: ' + fmt(L.tileW) + '×' + fmt(L.tileH) + ' ס״מ</div>' +
+      '<div>פוגה: ' + fmt(L.grout * 10) + ' מ״מ</div>' +
+      '<div>דגם: ' + PAT_NAME[L.pattern] + '</div>' +
+      '<div>התחלה: ' + START_NAME[L.start] + '</div></div>' +
+      '<h2>כמויות</h2><div class="pgrid">' +
+      '<div>שלמים: <b>' + A.full + '</b></div>' +
+      '<div>חתוכים: <b>' + A.cut + '</b></div>' +
+      '<div>נדרש: <b>' + A.need + '</b></div>' +
+      '<div>כולל ' + A.wastePct + '% פחת: <b>' + A.withWaste + '</b></div>' +
+      '<div>חבילות (' + A.perPack + ' ליח׳): <b>' + A.packs + '</b></div></div>' +
+      (A.warnings.length ? '<h2>הערות מקצועיות</h2><ul>' +
+        A.warnings.map(function (w) { return '<li>' + w.msg + ' ' + w.fix + '</li>'; }).join('') + '</ul>' : '') +
+      (UI.autoMsgs.length ? '<ul>' + UI.autoMsgs.map(function (m) { return '<li>' + m + '</li>'; }).join('') + '</ul>' : '') +
+      '<h2>הדמיה</h2><img src="' + img + '">' +
+      '<h2>רשימת חיתוכים</h2><table><thead><tr><th>מידה (ס״מ)</th><th>יח׳</th><th>מיקום</th><th>צורה</th></tr></thead><tbody>' +
+      A.cuts.map(function (c) {
+        return '<tr><td>' + fmt(c.w) + ' × ' + fmt(c.h) + '</td><td>' + c.n + '</td><td>' + c.place + '</td><td>' + c.shape + '</td></tr>';
+      }).join('') + '</tbody></table>' +
+      '<h2>בדיקת קירות</h2><table><thead><tr><th>קיר</th><th>חיתוך קצה</th></tr></thead><tbody>' +
+      ['top', 'bottom', 'left', 'right'].map(function (k) {
+        var w = A.walls[k];
+        return '<tr><td>' + w.name + '</td><td>' + (w.has ? fmt(w.min) + (w.min === w.max ? '' : '–' + fmt(w.max)) + ' ס״מ' : 'אריחים שלמים') + '</td></tr>';
+      }).join('') + '</tbody></table>' +
+      '<p style="font-size:11px;margin-top:14px">נוצר במחשבון הריצוף של N.L Studio · יש לאמת מידות בשטח לפני הזמנה.</p></div>';
+    $('printArea').innerHTML = h;
+  }
+  $('btnPdf').addEventListener('click', function () {
+    if (!UI.L) return;
+    buildPrint();
+    setTimeout(function () { window.print(); }, 60);
+  });
+  $('btnPng').addEventListener('click', function () {
+    if (!UI.L) return;
+    var a = document.createElement('a');
+    a.download = 'ritzuf-' + fmt(UI.L.roomW) + 'x' + fmt(UI.L.roomH) + '.png';
+    a.href = cv.toDataURL('image/png');
+    a.click();
+  });
+  $('btnShare').addEventListener('click', function () {
+    if (!UI.L) return;
+    var txt = summaryText();
+    if (cv.toBlob && navigator.canShare) {
+      cv.toBlob(function (blob) {
+        var file = new File([blob], 'ritzuf.png', { type: 'image/png' });
+        if (navigator.canShare({ files: [file] })) {
+          navigator.share({ files: [file], text: txt, title: 'פריסת ריצוף' }).catch(function () { waFallback(txt); });
+        } else waFallback(txt);
+      }, 'image/png');
+    } else waFallback(txt);
+  });
+  function waFallback(txt) { window.open('https://wa.me/?text=' + encodeURIComponent(txt), '_blank'); }
+
+  /* ---------- שמירה מקומית ---------- */
+  var KEY = 'nl_ritzuf_v1';
+  function save() {
+    try {
+      localStorage.setItem(KEY, JSON.stringify({
+        roomW: $('roomW').value, roomH: $('roomH').value, tileW: $('tileW').value, tileH: $('tileH').value,
+        grout: $('grout').value, shiftX: $('shiftX').value, shiftY: $('shiftY').value,
+        perPack: $('perPack').value, waste: $('waste').value,
+        pattern: UI.pattern, start: UI.start, auto: $('autoBalance').checked, deds: UI.deds
+      }));
+    } catch (e) { }
+  }
+  function load() {
+    try {
+      var s = JSON.parse(localStorage.getItem(KEY) || 'null');
+      if (!s) return;
+      ['roomW', 'roomH', 'tileW', 'tileH', 'grout', 'shiftX', 'shiftY', 'perPack', 'waste'].forEach(function (k) {
+        if (s[k] != null) $(k).value = s[k];
+      });
+      if (s.pattern) { UI.pattern = s.pattern; press('patternSeg', s.pattern); }
+      if (s.start) { UI.start = s.start; press('startSeg', s.start); }
+      if (typeof s.auto === 'boolean') $('autoBalance').checked = s.auto;
+      if (Array.isArray(s.deds)) UI.deds = s.deds;
+    } catch (e) { }
+  }
+  function press(id, v) {
+    $(id).querySelectorAll('button').forEach(function (b) {
+      b.setAttribute('aria-pressed', b.getAttribute('data-v') === v ? 'true' : 'false');
+    });
+  }
+
+  load(); renderDeds(); compute();
+})();
+</script>
+</body>
+</html>
